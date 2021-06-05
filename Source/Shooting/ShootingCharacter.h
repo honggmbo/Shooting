@@ -6,6 +6,16 @@
 #include "GameFramework/Character.h"
 #include "ShootingCharacter.generated.h"
 
+enum class eBulletType
+{
+	Normal,
+	Charge,
+	Divied,
+	Reflex,
+};
+
+class ABullet;
+
 UCLASS(config=Game)
 class AShootingCharacter : public ACharacter
 {
@@ -35,6 +45,12 @@ protected:
 	// End of APawn interface
 
 
+
+	// Called every frame
+	virtual void Tick(float DeltaTime);
+
+	UFUNCTION()
+		virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
 public:
 	AShootingCharacter();
 
@@ -42,4 +58,28 @@ public:
 	FORCEINLINE class UCameraComponent* GetSideViewCameraComponent() const { return SideViewCameraComponent; }
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+
+public:
+	FVector GetBulletStartPossition();
+
+	void BulletA_Pressed();
+	void BulletA_Released();
+	void BulletB_Pressed();
+	void BulletB_Released();
+
+	void CreateBullet(eBulletType type);
+	void NormalBullet();
+	void ChargeBullet();
+	void DiviedBullet();
+	void ReflexBullet();
+
+	void ResetKeyInput();
+
+protected:
+	const float m_bulletPosX = 20.0f;
+	const float m_bulletPosY = 50.0f;
+
+	bool m_bKeyPress_Q = false;
+	bool m_bKeyPress_W = false;
+	float m_keyPressTime_Q = 0;
 };
