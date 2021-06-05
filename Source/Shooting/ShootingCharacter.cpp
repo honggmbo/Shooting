@@ -124,8 +124,8 @@ FVector AShootingCharacter::GetBulletStartPossition()
 void AShootingCharacter::ResetKeyInput()
 {
 	m_keyPressTime_Q = 0;
-	m_bKeyPress_Q = true;
-	m_bKeyPress_W = true;
+	m_bKeyPress_Q = false;
+	m_bKeyPress_W = false;
 }
 
 void AShootingCharacter::BulletA_Pressed()
@@ -182,8 +182,6 @@ void AShootingCharacter::CreateBullet(eBulletType type)
 	if (world == nullptr)
 		return;
 
-	FVector direction = GetActorForwardVector();
-	FVector location = GetBulletStartPossition();
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = GetInstigator();
@@ -191,16 +189,16 @@ void AShootingCharacter::CreateBullet(eBulletType type)
 	switch (type)	
 	{
 		case eBulletType::Normal:
-			world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), location, GetActorRotation(), SpawnParams);
+			world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), GetBulletStartPossition(), GetActorRotation(), SpawnParams);
 			break;
 		case eBulletType::Charge:
-			world->SpawnActor<AChargeBullet>(AChargeBullet::StaticClass(), location, GetActorRotation(), SpawnParams);
+			world->SpawnActor<AChargeBullet>(AChargeBullet::StaticClass(), GetBulletStartPossition(), GetActorRotation(), SpawnParams);
 			break;
 		case eBulletType::Divied:
-			world->SpawnActor<ADividedBullet>(ADividedBullet::StaticClass(), location, GetActorRotation(), SpawnParams);
+			world->SpawnActor<ADividedBullet>(ADividedBullet::StaticClass(), GetBulletStartPossition(), GetActorRotation(), SpawnParams);
 			break;
 		case eBulletType::Reflex:
-			world->SpawnActor<AReflexBullet>(AReflexBullet::StaticClass(), location, GetActorRotation(), SpawnParams);
+			world->SpawnActor<AReflexBullet>(AReflexBullet::StaticClass(), GetBulletStartPossition(), GetActorRotation(), SpawnParams);
 			break;
 		default:
 			break;

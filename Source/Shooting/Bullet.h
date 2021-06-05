@@ -27,26 +27,26 @@ public:
 	virtual void Tick(float DeltaTime);
 
 public:
-	UPROPERTY(EditAnywhere)
-		UStaticMeshComponent* m_mesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		class UArrowComponent* m_arrow;
+	virtual void TimeOut();
 
 	UFUNCTION()
 		virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
 
-	void CreateMesh();
-	void CreateArrow();
+	UStaticMeshComponent* CreateMesh();
+	UArrowComponent* CreateArrow(FString name);
 
 protected:
-	bool m_bStart = false;
+	
+	UPROPERTY(EditAnywhere)
+		UStaticMeshComponent* m_mesh;
+
+	UArrowComponent* m_arrow = nullptr;
+
 	float m_speed = 100.0f;	// √ ¥Á 100
-	float m_arrowSize = 3.0f;
+	const float m_arrowSize = 3.0f;
 	float m_expireTime = 3.0f;
 	float m_aliveTime = 0.0f;
-	FVector m_direction;
-
 
 };
 
@@ -69,17 +69,31 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
+
 };
 
 // AChargeBullet
 UCLASS()
-class AChargeBullet : public ANormalBullet
+class AChargeBullet : public ABullet
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
 	AChargeBullet();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
+
 };
 
 // ADividedBullet
@@ -101,6 +115,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
+	
+	virtual void TimeOut();
+
+protected:
+	class UArrowComponent* m_arrow2;
+	class UArrowComponent* m_arrow3;
+
 };
 
 // AReflexBullet
@@ -121,5 +143,7 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
 
 };
