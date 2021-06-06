@@ -8,6 +8,8 @@ public class Shooting : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SlateCore", "Slate" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SlateCore", "Slate", "UMG" });
+
+		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 	}
 }

@@ -23,11 +23,20 @@ void ABullet::BeginPlay()
 UStaticMeshComponent* ABullet::CreateMesh()
 {
 	UStaticMeshComponent* mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere"));
+	//ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Cube"));
 	if (Sphere.Succeeded())
 	{
 		mesh->SetStaticMesh(Sphere.Object);
 		mesh->SetWorldScale3D(FVector(0.1));
+// 		mesh->bUseDefaultCollision = true;
+// 		mesh->SetGenerateOverlapEvents(false);
+// 		mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		mesh->SetNotifyRigidBodyCollision(true);
+		//mesh->SetCollisionProfileName(FName(TEXT("PhysicsActor")));
+		//mesh->SetSimulatePhysics(true);
+		//mesh->SetEnableGravity(false);
+		//mesh->SetGenerateOverlapEvents()
 		RootComponent = mesh;
 	}
 	return mesh;

@@ -12,9 +12,11 @@ enum class eBulletType
 	Charge,
 	Divied,
 	Reflex,
+	Max,
 };
 
 class ABullet;
+class AMyHUD;
 
 UCLASS(config=Game)
 class AShootingCharacter : public ACharacter
@@ -44,13 +46,11 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	// End of APawn interface
 
-
-
 	// Called every frame
 	virtual void Tick(float DeltaTime);
 
-	UFUNCTION()
-		virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
+	virtual void BeginPlay() override;
+
 public:
 	AShootingCharacter();
 
@@ -62,24 +62,31 @@ public:
 public:
 	FVector GetBulletStartPossition();
 
-	void BulletA_Pressed();
-	void BulletA_Released();
-	void BulletB_Pressed();
-	void BulletB_Released();
+	void KeyPressed_Q();
+	void KeyReleased_Q();
+	void KeyPressed_W();
+	void KeyReleased_W();
 
-	void CreateBullet(eBulletType type);
-	void NormalBullet();
-	void ChargeBullet();
-	void DiviedBullet();
-	void ReflexBullet();
+	void CreateBullet(eBulletType bulletType);
+	
+	// Bullet Count
+	uint32 GetBulletCount(eBulletType bulletType);
+	void UpdateBulletCount(eBulletType bulletType);
+	
+	// ChargeBar
+	void UpdateChargeBar();
 
 	void ResetKeyInput();
 
 protected:
 	const float m_bulletPosX = 20.0f;
 	const float m_bulletPosY = 50.0f;
+	const float m_chargeTime = 3.0f;
 
 	bool m_bKeyPress_Q = false;
 	bool m_bKeyPress_W = false;
-	float m_keyPressTime_Q = 0;
+	float m_keyPressTime_Q = 0.0f;
+
+	TArray<uint32> m_bulletCount;
+	AMyHUD* m_myHud;
 };

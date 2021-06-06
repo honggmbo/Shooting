@@ -7,6 +7,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Bullet.h"
+#include "MyHUD.h"
+#include "Blueprint/UserWidget.h"
 
 AShootingCharacter::AShootingCharacter()
 {
@@ -44,6 +46,7 @@ AShootingCharacter::AShootingCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+	m_bulletCount.Init(0, static_cast<int32>(eBulletType::Max));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,10 +60,10 @@ void AShootingCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	PlayerInputComponent->BindAxis("MoveRight", this, &AShootingCharacter::MoveRight);
 
 	// Bullet
-	PlayerInputComponent->BindKey(EKeys::Q, IE_Pressed, this, &AShootingCharacter::BulletA_Pressed);
-	PlayerInputComponent->BindKey(EKeys::Q, IE_Released, this, &AShootingCharacter::BulletA_Released);
-	PlayerInputComponent->BindKey(EKeys::W, IE_Pressed, this, &AShootingCharacter::BulletB_Pressed);
-	PlayerInputComponent->BindKey(EKeys::W, IE_Released, this, &AShootingCharacter::BulletB_Released);
+	PlayerInputComponent->BindKey(EKeys::Q, IE_Pressed, this, &AShootingCharacter::KeyPressed_Q);
+	PlayerInputComponent->BindKey(EKeys::Q, IE_Released, this, &AShootingCharacter::KeyReleased_Q);
+	PlayerInputComponent->BindKey(EKeys::W, IE_Pressed, this, &AShootingCharacter::KeyPressed_W);
+	PlayerInputComponent->BindKey(EKeys::W, IE_Released, this, &AShootingCharacter::KeyReleased_W);
 
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &AShootingCharacter::TouchStarted);
 	PlayerInputComponent->BindTouch(IE_Released, this, &AShootingCharacter::TouchStopped);
@@ -73,15 +76,19 @@ void AShootingCharacter::Tick(float DeltaTime)
 	if (m_bKeyPress_Q)
 	{
 		m_keyPressTime_Q += DeltaTime;
+		UpdateChargeBar();
 	}
 
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, FString::Printf(L"%s", *GetActorLocation().ToString()));
 }
 
-void AShootingCharacter::NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit)
+void AShootingCharacter::BeginPlay()
 {
-	UE_LOG(LogTemp, Log, TEXT("Hit"));
+	Super::BeginPlay();
+
+	// Get Hud
+	m_myHud = Cast<AMyHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
 }
 
 void AShootingCharacter::MoveRight(float Value)
@@ -126,9 +133,10 @@ void AShootingCharacter::ResetKeyInput()
 	m_keyPressTime_Q = 0;
 	m_bKeyPress_Q = false;
 	m_bKeyPress_W = false;
+	UpdateChargeBar();
 }
 
-void AShootingCharacter::BulletA_Pressed()
+void AShootingCharacter::KeyPressed_Q()
 {
 	if (m_bKeyPress_Q == false)
 	{
@@ -136,12 +144,12 @@ void AShootingCharacter::BulletA_Pressed()
 	}
 }
 
-void AShootingCharacter::BulletA_Released()
+void AShootingCharacter::KeyReleased_Q()
 {
 	if (m_bKeyPress_Q == false)	// 분열 반사체
 		return;
 
-	if (m_keyPressTime_Q < 3.0f)
+	if (m_keyPressTime_Q < m_chargeTime)
 	{
 		CreateBullet(eBulletType::Normal);
 	}
@@ -151,7 +159,7 @@ void AShootingCharacter::BulletA_Released()
 	}
 }
 
-void AShootingCharacter::BulletB_Pressed()
+void AShootingCharacter::KeyPressed_W()
 {
 	m_bKeyPress_W = true;
 
@@ -163,7 +171,7 @@ void AShootingCharacter::BulletB_Pressed()
 	}
 }
 
-void AShootingCharacter::BulletB_Released()
+void AShootingCharacter::KeyReleased_W()
 {
 	if (m_bKeyPress_Q)
 		return;
@@ -174,8 +182,14 @@ void AShootingCharacter::BulletB_Released()
 	CreateBullet(eBulletType::Reflex);
 }
 
-void AShootingCharacter::CreateBullet(eBulletType type)
+void AShootingCharacter::CreateBullet(eBulletType bulletType)
 {
+	if (m_myHud)
+	{
+		UpdateBulletCount(bulletType);
+		m_myHud->UpdateBulletCount(bulletType, GetBulletCount(bulletType));
+	}
+
 	ResetKeyInput();
 
 	UWorld* world = GetWorld();
@@ -186,7 +200,7 @@ void AShootingCharacter::CreateBullet(eBulletType type)
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = GetInstigator();
 
-	switch (type)	
+	switch (bulletType)
 	{
 		case eBulletType::Normal:
 			world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), GetBulletStartPossition(), GetActorRotation(), SpawnParams);
@@ -203,4 +217,19 @@ void AShootingCharacter::CreateBullet(eBulletType type)
 		default:
 			break;
 	}
+}
+
+uint32 AShootingCharacter::GetBulletCount(eBulletType bulletType)
+{
+	return m_bulletCount[static_cast<uint32>(bulletType)];
+}
+
+void AShootingCharacter::UpdateBulletCount(eBulletType bulletType)
+{
+	m_bulletCount[static_cast<uint32>(bulletType)]++;
+}
+
+void AShootingCharacter::UpdateChargeBar()
+{
+	m_myHud->UpdateChargeBar(std::fmin(1.0f, m_keyPressTime_Q / m_chargeTime));
 }
