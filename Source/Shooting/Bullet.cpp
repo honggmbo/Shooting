@@ -2,84 +2,23 @@
 
 
 #include "Bullet.h"
-#include "Engine/Classes/Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ABullet::ABullet()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	m_mesh = CreateMesh();
-	m_arrow = CreateArrow("Arrow1");
 }
 
-// Called when the game starts or when spawned
 void ABullet::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-UStaticMeshComponent* ABullet::CreateMesh()
-{
-	UStaticMeshComponent* mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	//ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere"));
-	ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Cube"));
-	if (Sphere.Succeeded())
-	{
-		mesh->SetStaticMesh(Sphere.Object);
-		mesh->SetWorldScale3D(FVector(0.1));
-// 		mesh->bUseDefaultCollision = true;
-// 		mesh->SetGenerateOverlapEvents(false);
-// 		mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		mesh->SetNotifyRigidBodyCollision(true);
-		//mesh->SetCollisionProfileName(FName(TEXT("PhysicsActor")));
-		//mesh->SetSimulatePhysics(true);
-		//mesh->SetEnableGravity(false);
-		//mesh->SetGenerateOverlapEvents()
-		RootComponent = mesh;
-	}
-	return mesh;
-}
-
-UArrowComponent* ABullet::CreateArrow(FString name)
-{
-	UArrowComponent* arrow = CreateEditorOnlyDefaultSubobject<UArrowComponent>(*name);
-	if (arrow)
-	{
-		arrow->ArrowColor = FColor(255, 0, 0);
-		arrow->ArrowSize = m_arrowSize;
-		arrow->bTreatAsASprite = true;
-		arrow->SetupAttachment(RootComponent);
-		arrow->bIsScreenSizeScaled = true;
-		arrow->bHiddenInGame = false;
-	}
-
-	return arrow;
-}
-
-void ABullet::NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit)
-{
-	Destroy();
-}
-
-// Called every frame
 void ABullet::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	m_aliveTime += DeltaTime;
-
-	if (m_aliveTime >= m_expireTime)
-	{
-		TimeOut();
-		return;
-	}
-}
-
-void ABullet::TimeOut()
-{
-	Destroy(true);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,25 +28,102 @@ ANormalBullet::ANormalBullet()
 {
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, FString::Printf(L"ANormalBullet Create"));
+
+	// 종료시간 설정
+	InitialLifeSpan = m_defaultExpireTime;
+
+	// Static Mesh
+	CreateStaticMesh();
+
+	// Arrow
+	m_arrow = CreateArrow("Arrow1");
+
+	// Movement
+	CreateMovement();
+}
+
+void ANormalBullet::CreateStaticMesh()
+{
+	m_staticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere"));
+	if (Sphere.Succeeded())
+	{
+		m_staticMesh->SetStaticMesh(Sphere.Object);
+		m_staticMesh->SetWorldScale3D(FVector(0.2));
+		m_staticMesh->bUseDefaultCollision = true;
+		m_staticMesh->SetNotifyRigidBodyCollision(true);
+		m_staticMesh->SetCollisionProfileName(FName(TEXT("BlockAll")));
+		m_staticMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		m_staticMesh->SetGenerateOverlapEvents(true);
+		RootComponent = m_staticMesh;
+	}
+}
+
+UArrowComponent* ANormalBullet::CreateArrow(FString name)
+{
+	UArrowComponent* arrow = CreateEditorOnlyDefaultSubobject<UArrowComponent>(*name);
+	if (arrow)
+	{
+		arrow->ArrowColor = FColor(255, 0, 0);
+		arrow->ArrowSize = m_defaultArrowSize;
+		arrow->bTreatAsASprite = true;
+		arrow->bIsScreenSizeScaled = true;
+		arrow->bHiddenInGame = false;
+		arrow->SetupAttachment(RootComponent);
+	}
+
+	return arrow;
+}
+
+void ANormalBullet::CreateMovement()
+{
+	m_movement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Move"));
+	if (m_movement)
+	{
+		m_movement->InitialSpeed = m_defaultSpeed;
+		m_movement->ProjectileGravityScale = 0.0f;
+		m_movement->bRotationFollowsVelocity = true;
+		m_movement->bShouldBounce = true;
+		m_movement->Bounciness = m_defaultSpeed;
+		m_movement->SetUpdatedComponent(m_staticMesh);
+	}
 }
 
 void ANormalBullet::BeginPlay()
 {
 	Super::BeginPlay();
-}
 
-void ANormalBullet::NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit)
-{
-	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
+	m_radius = GetSimpleCollisionRadius();
+
+	// 충돌
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), m_actors);
 }
 
 void ANormalBullet::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FVector newLocation = GetActorLocation();
-	newLocation += GetActorForwardVector() * m_speed * DeltaTime;
-	SetActorLocation(newLocation);
+	if (IsExpired(DeltaTime))
+		return;
+
+	m_aliveTime += DeltaTime;
+}
+
+bool ANormalBullet::IsExpired(float curTime)
+{
+	return false;
+}
+
+void ANormalBullet::TimeOut()
+{
+	Destroy();
+}
+
+void ANormalBullet::NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit)
+{
+	ABullet* bullet = Cast<ABullet>(Other);
+	if (bullet == nullptr)
+		Destroy();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,27 +138,9 @@ AChargeBullet::AChargeBullet()
 	if (m_arrow)
 		m_arrow->ArrowSize *= 3.0f;
 	
-	// 자동 소멸시간 변경
-	m_expireTime = 5.0f;
-}
-
-void AChargeBullet::NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit)
-{
-	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
-}
-
-void AChargeBullet::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void AChargeBullet::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	FVector newLocation = GetActorLocation();
-	newLocation += GetActorForwardVector() * m_speed * DeltaTime;
-	SetActorLocation(newLocation);
+	// 자동 소멸시간 변경 sec
+	m_defaultExpireTime = 5.0f;
+	InitialLifeSpan = m_defaultExpireTime;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -164,36 +162,33 @@ ADividedBullet::ADividedBullet()
 		m_arrow3->AddLocalRotation(FRotator(0.f, -45.f, 0.f));
 }
 
-void ADividedBullet::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void ADividedBullet::NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit)
-{
-	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
-}
-
-void ADividedBullet::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	FVector newLocation = GetActorLocation();
-	newLocation += GetActorForwardVector() * m_speed * DeltaTime;
-	SetActorLocation(newLocation);
-}
-
 void ADividedBullet::TimeOut()
 {
 	UWorld* world = GetWorld();
 	if (world == nullptr)
 		return;
 
-	world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), GetActorLocation(), m_arrow->GetComponentRotation());
-	world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), GetActorLocation(), m_arrow3->GetComponentRotation());
-	world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), GetActorLocation(), m_arrow2->GetComponentRotation());
+	// 충돌때문에 좌표를 이동해준다.
+	FVector location1 = GetActorLocation() + (m_arrow->GetForwardVector() * m_radius * 2);
+	FVector location2 = GetActorLocation() + (m_arrow2->GetForwardVector() * m_radius * 2);
+	FVector location3 = GetActorLocation() + (m_arrow3->GetForwardVector() * m_radius * 2);
+
+
+	world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), location1, m_arrow->GetComponentRotation());
+	world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), location2, m_arrow2->GetComponentRotation());
+	world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), location3, m_arrow3->GetComponentRotation());
 
 	Destroy();
+}
+
+bool ADividedBullet::IsExpired(float curTime)
+{
+	if (m_aliveTime + curTime > m_defaultExpireTime)
+	{
+		TimeOut();
+		return true;
+	}
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -214,18 +209,5 @@ AReflexBullet::AReflexBullet()
 void AReflexBullet::NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit)
 {
 	SetActorRotation(GetActorRotation() * -1);
-}
-
-void AReflexBullet::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void AReflexBullet::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	FVector newLocation = GetActorLocation();
-	newLocation += GetActorForwardVector() * m_speed * DeltaTime;
-	SetActorLocation(newLocation);
+	m_movement->Velocity *= -1;
 }

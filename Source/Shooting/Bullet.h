@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include <Engine/StaticMeshActor.h>
 #include "Components/ArrowComponent.h"
+#include "Engine/Classes/Components/CapsuleComponent.h"
+#include "Engine/Classes/Components/StaticMeshComponent.h"
+#include <Engine/Classes/GameFramework/ProjectileMovementComponent.h>
 #include "Bullet.generated.h"
 
 UCLASS()
@@ -19,35 +21,33 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual void BeginPlay();
 
 public:	
 
-	// Called every frame
 	virtual void Tick(float DeltaTime);
-
-public:
-
-	virtual void TimeOut();
-
-	UFUNCTION()
-		virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
-
-	UStaticMeshComponent* CreateMesh();
-	UArrowComponent* CreateArrow(FString name);
+	virtual bool IsExpired(float curTime) { return false; }
+	virtual void TimeOut() {}
 
 protected:
 	
 	UPROPERTY(EditAnywhere)
-		UStaticMeshComponent* m_mesh;
+	UStaticMeshComponent* m_staticMesh = nullptr;
 
+	UPROPERTY(EditAnywhere)
 	UArrowComponent* m_arrow = nullptr;
+	
+	UPROPERTY(EditAnywhere)
+	UProjectileMovementComponent* m_movement = nullptr;
 
-	float m_speed = 100.0f;	// 초당 100
-	const float m_arrowSize = 3.0f;
-	float m_expireTime = 3.0f;
+
+	const float m_defaultSpeed = 100.0f;	// 초당 100
+	const float m_defaultArrowSize = 3.0f;	// default
+	float m_defaultExpireTime = 3.0f; // 자동 소멸시간 변경 sec
 	float m_aliveTime = 0.0f;
+	float m_radius = 0.0;
 
+	TArray<AActor*> m_actors;
 };
 
 // ANormalBullet
@@ -60,22 +60,24 @@ public:
 	// Sets default values for this actor's properties
 	ANormalBullet();
 
+	void CreateStaticMesh();
+	UArrowComponent* CreateArrow(FString name);
+	void CreateMovement();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:
-
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	virtual bool IsExpired(float curTime) override;
+	virtual void TimeOut() override;
 	virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
-
 };
 
 // AChargeBullet
 UCLASS()
-class AChargeBullet : public ABullet
+class AChargeBullet : public ANormalBullet
 {
 	GENERATED_BODY()
 
@@ -83,22 +85,11 @@ public:
 	// Sets default values for this actor's properties
 	AChargeBullet();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
-
 };
 
 // ADividedBullet
 UCLASS()
-class ADividedBullet : public ABullet
+class ADividedBullet : public ANormalBullet
 {
 	GENERATED_BODY()
 
@@ -106,18 +97,11 @@ public:
 	// Sets default values for this actor's properties
 	ADividedBullet();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 public:
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
-	
 	virtual void TimeOut();
+
+	virtual bool IsExpired(float curTime) override;
 
 protected:
 	class UArrowComponent* m_arrow2;
@@ -127,7 +111,7 @@ protected:
 
 // AReflexBullet
 UCLASS()
-class AReflexBullet : public ABullet
+class AReflexBullet : public ANormalBullet
 {
 	GENERATED_BODY()
 
@@ -135,14 +119,7 @@ public:
 	// Sets default values for this actor's properties
 	AReflexBullet();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 public:
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
 
