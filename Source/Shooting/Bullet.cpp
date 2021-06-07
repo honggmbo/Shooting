@@ -94,9 +94,6 @@ void ANormalBullet::BeginPlay()
 	Super::BeginPlay();
 
 	m_radius = GetSimpleCollisionRadius();
-
-	// Ãæµ¹
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), m_actors);
 }
 
 void ANormalBullet::Tick(float DeltaTime)
@@ -114,16 +111,9 @@ bool ANormalBullet::IsExpired(float curTime)
 	return false;
 }
 
-void ANormalBullet::TimeOut()
-{
-	Destroy();
-}
-
 void ANormalBullet::NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit)
 {
-	ABullet* bullet = Cast<ABullet>(Other);
-	if (bullet == nullptr)
-		Destroy();
+	Destroy();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -162,7 +152,7 @@ ADividedBullet::ADividedBullet()
 		m_arrow3->AddLocalRotation(FRotator(0.f, -45.f, 0.f));
 }
 
-void ADividedBullet::TimeOut()
+void ADividedBullet::DividedBullet()
 {
 	UWorld* world = GetWorld();
 	if (world == nullptr)
@@ -172,7 +162,6 @@ void ADividedBullet::TimeOut()
 	FVector location1 = GetActorLocation() + (m_arrow->GetForwardVector() * m_radius * 2);
 	FVector location2 = GetActorLocation() + (m_arrow2->GetForwardVector() * m_radius * 2);
 	FVector location3 = GetActorLocation() + (m_arrow3->GetForwardVector() * m_radius * 2);
-
 
 	world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), location1, m_arrow->GetComponentRotation());
 	world->SpawnActor<ANormalBullet>(ANormalBullet::StaticClass(), location2, m_arrow2->GetComponentRotation());
@@ -185,7 +174,7 @@ bool ADividedBullet::IsExpired(float curTime)
 {
 	if (m_aliveTime + curTime > m_defaultExpireTime)
 	{
-		TimeOut();
+		DividedBullet();
 		return true;
 	}
 	return false;
@@ -209,5 +198,6 @@ AReflexBullet::AReflexBullet()
 void AReflexBullet::NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit)
 {
 	SetActorRotation(GetActorRotation() * -1);
-	m_movement->Velocity *= -1;
+	if (m_movement)
+		m_movement->Velocity *= -1;
 }

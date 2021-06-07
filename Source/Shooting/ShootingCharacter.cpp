@@ -187,7 +187,6 @@ void AShootingCharacter::CreateBullet(eBulletType bulletType)
 	if (m_myHud)
 	{
 		UpdateBulletCount(bulletType);
-		m_myHud->UpdateBulletCount(bulletType, GetBulletCount(bulletType));
 	}
 
 	ResetKeyInput();
@@ -227,6 +226,16 @@ uint32 AShootingCharacter::GetBulletCount(eBulletType bulletType)
 void AShootingCharacter::UpdateBulletCount(eBulletType bulletType)
 {
 	m_bulletCount[static_cast<uint32>(bulletType)]++;
+	m_myHud->UpdateBulletCount(bulletType, m_bulletCount[static_cast<int>(bulletType)]);
+}
+
+void AShootingCharacter::ResetBulletCount()
+{
+	for (int i = 0; i < static_cast<int>(eBulletType::Max); i++)
+	{
+		m_bulletCount[i] = 0;
+		m_myHud->UpdateBulletCount(static_cast<eBulletType>(i), 0);
+	}
 }
 
 void AShootingCharacter::UpdateChargeBar()

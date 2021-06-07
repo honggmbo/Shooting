@@ -27,7 +27,6 @@ public:
 
 	virtual void Tick(float DeltaTime);
 	virtual bool IsExpired(float curTime) { return false; }
-	virtual void TimeOut() {}
 
 protected:
 	
@@ -40,14 +39,11 @@ protected:
 	UPROPERTY(EditAnywhere)
 	UProjectileMovementComponent* m_movement = nullptr;
 
-
 	const float m_defaultSpeed = 100.0f;	// 초당 100
 	const float m_defaultArrowSize = 3.0f;	// default
 	float m_defaultExpireTime = 3.0f; // 자동 소멸시간 변경 sec
 	float m_aliveTime = 0.0f;
 	float m_radius = 0.0;
-
-	TArray<AActor*> m_actors;
 };
 
 // ANormalBullet
@@ -71,7 +67,6 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual bool IsExpired(float curTime) override;
-	virtual void TimeOut() override;
 	virtual void NotifyHit(UPrimitiveComponent *MyComp, AActor *Other, UPrimitiveComponent *OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult &Hit) override;
 };
 
@@ -99,13 +94,12 @@ public:
 
 public:
 
-	virtual void TimeOut();
-
 	virtual bool IsExpired(float curTime) override;
+	void DividedBullet();
 
 protected:
-	class UArrowComponent* m_arrow2;
-	class UArrowComponent* m_arrow3;
+	class UArrowComponent* m_arrow2 = nullptr;
+	class UArrowComponent* m_arrow3 = nullptr;
 
 };
 

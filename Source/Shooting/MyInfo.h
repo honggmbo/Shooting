@@ -20,8 +20,10 @@ public:
 	UMyInfo(const FObjectInitializer& ObjectInitalizer);
 	
 	void UpdateBulletCount(eBulletType bulletType, int32 count);
-
 	void UpdateChargeBar(float percent);
+	
+	UFUNCTION(BlueprintCallable)
+	void ResetCount();
 
 protected:
 
@@ -40,5 +42,7 @@ protected:
 		class UProgressBar* progressBar;
 	UPROPERTY(Meta = (BindWidget))
 		class UCanvasPanel* canvasPanel;
+	UPROPERTY(Meta = (BindWidget))
+		class UButton* btnReset;
 	
 };

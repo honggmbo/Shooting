@@ -14,6 +14,9 @@ UMyInfo::UMyInfo(const FObjectInitializer& ObjectInitalizer) : Super(ObjectInita
 void UMyInfo::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	if (btnReset)
+		btnReset->OnClicked.AddDynamic(this, &UMyInfo::ResetCount);
 }
 
 void UMyInfo::UpdateBulletCount(eBulletType bulletType, int32 count)
@@ -44,5 +47,17 @@ void UMyInfo::UpdateChargeBar(float percent)
 	if (progressBar)
 	{
 		progressBar->SetPercent(percent);
+	}
+}
+
+void UMyInfo::ResetCount()
+{
+	if (GetWorld() == nullptr)
+		return;
+
+	AShootingCharacter* character = Cast<AShootingCharacter>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	if (character)
+	{
+		character->ResetBulletCount();
 	}
 }

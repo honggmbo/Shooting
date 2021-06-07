@@ -72,6 +72,7 @@ public:
 	// Bullet Count
 	uint32 GetBulletCount(eBulletType bulletType);
 	void UpdateBulletCount(eBulletType bulletType);
+	void ResetBulletCount();
 	
 	// ChargeBar
 	void UpdateChargeBar();
