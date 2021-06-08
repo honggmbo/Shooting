@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\..\Shooting.uproject" />
+    <Filter Include="Source">
+      <UniqueIdentifier>{7E2B7F28-14A0-4668-BD0C-ADD88472F775}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Shooting.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\Source\ShootingEditor.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\.gitignore" />
+    <Filter Include="Config">
+      <UniqueIdentifier>{B483B00C-45E1-43FC-9EF2-625AE0A6E226}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\DefaultEditor.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEditorPerProjectUserSettings.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEngine.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGame.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultInput - 복사본.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultInput.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Source\Shooting">
+      <UniqueIdentifier>{82F443E9-932E-46D2-9C88-305BC43D3A00}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Shooting\Bullet.cpp">
+      <Filter>Source\Shooting</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Shooting\Bullet.h">
+      <Filter>Source\Shooting</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Shooting\MyHUD.cpp">
+      <Filter>Source\Shooting</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Shooting\MyHUD.h">
+      <Filter>Source\Shooting</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Shooting\MyInfo.cpp">
+      <Filter>Source\Shooting</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Shooting\MyInfo.h">
+      <Filter>Source\Shooting</Filter>
+    </ClInclude>
+    <None Include="..\..\Source\Shooting\Shooting.Build.cs">
+      <Filter>Source\Shooting</Filter>
+    </None>
+    <ClCompile Include="..\..\Source\Shooting\Shooting.cpp">
+      <Filter>Source\Shooting</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Shooting\Shooting.h">
+      <Filter>Source\Shooting</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Shooting\ShootingCharacter.cpp">
+      <Filter>Source\Shooting</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Shooting\ShootingCharacter.h">
+      <Filter>Source\Shooting</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Shooting\ShootingGameMode.cpp">
+      <Filter>Source\Shooting</Filter>
+    </ClCompile>
+    <None Include="..\..\Source\Shooting\ShootingGameMode.cpp.bak">
+      <Filter>Source\Shooting</Filter>
+    </None>
+    <ClInclude Include="..\..\Source\Shooting\ShootingGameMode.h">
+      <Filter>Source\Shooting</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

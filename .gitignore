@@ -1,8 +1,12 @@
 /.vs
-/Intermediate
+/Intermediate/AssetRegistryCache
+/Intermediate/Build
+/Intermediate/Config
+/Intermediate/DatasmithContentTemp
+/Intermediate/ReimportCache
+/Intermediate/*.*
 /Saved
 /Binaries
 /Plugins
 /Content
-*.sln
 *_BuiltData.uasset
